@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# baidu
+openssl req \
+    -subj "/C=BE/ST=Beijing/L=Beijing/O=GlobalSign nv-sa/CN=*.baidu.com/CN=GlobalSign Organization Validation CA - SHA256 - G2" \
+    -new \
+    -key server.key \
+    -out baidu.csr
+
+>openssl-baidu.cnf cat <<-EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = *.baidu.com
+EOF
+
+openssl x509 -req -in baidu.csr -CA ca.crt -CAkey ca.key -CAcreateserial \
+    -out baidu.pem -days 825 -sha256 -extfile openssl-baidu.cnf
+
+cp server.key ../conf.d/
+cp baidu.pem ../conf.d/
+
